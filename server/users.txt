@@ -1,0 +1,2 @@
+{"name": "Alexander", "id": "787878", "role": "professor", "password": "professor_pass"}
+{"name": "Helena", "id": "99999", "role": "student", "password": "student_pass"}
