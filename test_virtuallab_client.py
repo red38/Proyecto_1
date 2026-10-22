@@ -6,8 +6,8 @@ from PySpice.Spice.Parser import SpiceParser
 url="http://localhost:80"
 
 # Registra un usuario profesor
-name="Alexander"
-id_professor=787878
+name="Santiago"
+id_professor=0000
 role="professor"
 password_professor="professor_pass"
 
@@ -15,8 +15,8 @@ print(virtuallab_client.registerUser(url,name,id_professor,role,password_profess
 
 
 # Registra un usuario estudiante
-name="Helena"
-id_student=99999
+name="prueba"
+id_student=8888
 role="student"
 password_student="student_pass"
 
@@ -25,7 +25,7 @@ print(virtuallab_client.registerUser(url,name,id_student,role,password_student))
 
 
 # Inicia sesión con profesor
-name="Alexander"
+name="Santiago"
 print(virtuallab_client.openSession(url,id_professor,password_professor))
 
 # Carga laboratorio
@@ -55,7 +55,7 @@ print(virtuallab_client.openSession(url,id_student,password_student))
 print(virtuallab_client.listStudentLabs(url,id_student))
 
 # Descarga laboratorio
-lab_name="rc"
+lab_name="voltage_divider"
 file_name=lab_name+".zip"
 print(virtuallab_client.downloadLab(url,id_student,file_name))
 
