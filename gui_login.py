@@ -1,12 +1,15 @@
 import sys
 import json
 
+import PyQt5
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLineEdit, QPushButton,
     QVBoxLayout, QTabWidget, QMessageBox
 )
 
-MODULE_DIR = "server/users.txt"
+import virtuallab_client as backend
+
+SERVER_URL = "http://localhost:80"
 
 
 class LoginWindow(QWidget):
@@ -57,30 +60,39 @@ class LoginWindow(QWidget):
         self.setLayout(layout)
 
     def login(self):
-        with open(MODULE_DIR, "r", encoding="utf-8") as f:
-            for line in f:
-                user = json.loads(line)
-                if user["id"] == self.id_input.text() and user["password"] == self.pass_input.text():
-                    import gui_labs
-                    self.labs_window = gui_labs.LabsWindow(user)
-                    self.labs_window.show()
-                    self.hide()
-                    return
-        QMessageBox.warning(self, "Error", "ID o contraseña incorrectos")
+        if not self.id_input.text() or not self.pass_input.text():
+            QMessageBox.warning(self, "Error", "Completa todos los campos")
+            return
+        response = backend.openSession(SERVER_URL, self.id_input.text(), self.pass_input.text())
+        if "succesfully opened" in response:
+            # Detectar el rol: listProfessorsLabs solo funciona para profesores
+            # con sesión abierta; para un estudiante responde "error...".
+            role = "student"
+            labs_response = backend.listProfessorsLabs(SERVER_URL, self.id_input.text())
+            try:
+                if isinstance(json.loads(labs_response), list):
+                    role = "professor"
+            except (json.JSONDecodeError, ValueError):
+                pass
+            user = {"name": self.id_input.text(), "id": self.id_input.text(), "role": role}
+            import gui_labs
+            self.labs_window = gui_labs.LabsWindow(user)
+            self.labs_window.show()
+            self.hide()
+        else:
+            QMessageBox.warning(self, "Error", response.replace("error", "ID o contraseña incorrectos"))
 
     def register(self):
         if not self.name_in.text() or not self.id_in.text() or not self.pass_in.text():
             QMessageBox.warning(self, "Error", "Completa todos los campos")
             return
-        new_user = {
-            "name": self.name_in.text(),
-            "id": self.id_in.text(),
-            "role": "student",
-            "password": self.pass_in.text()
-        }
-        with open(MODULE_DIR, "a", encoding="utf-8") as f:
-            f.write(json.dumps(new_user) + "\n")
-        QMessageBox.information(self, "Registrado", "Usuario registrado con éxito")
+        response = backend.registerUser(SERVER_URL, self.name_in.text(),
+                                        self.id_in.text(), "student",
+                                        self.pass_in.text())
+        if "already registered" in response:
+            QMessageBox.warning(self, "Error", "Ese ID ya está registrado")
+        else:
+            QMessageBox.information(self, "Registrado", "Usuario registrado con éxito")
 
 
 if __name__ == "__main__":
