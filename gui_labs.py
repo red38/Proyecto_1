@@ -27,10 +27,25 @@ def simulate(cir_text, lab_name):
 
         if has_capacitor:
             print("Análisis transitorio")
-            simulator.transient(step_time=1e-3, end_time=1e-2)
+            analysis = simulator.transient(step_time=1e-3, end_time=1e-2)
+
+            time = analysis.time
+            node_names = [n for n in analysis.nodes]
+            # Imprimir unas 10 muestras distribuidas a lo largo del tiempo
+            step = max(len(time) // 10, 1)
+            header = f"{'t (s)':>12}" + "".join(f"{n:>12} (V)" for n in node_names)
+            print(header)
+            for i in range(0, len(time), step):
+                row = f"{float(time[i]):>12.5f}"
+                for name in node_names:
+                    row += f"{float(analysis[name][i]):>15.4f}"
+                print(row)
+
         else:
             print("Análisis DC")
-            simulator.operating_point()
+            analysis = simulator.operating_point()
+            for name, node in analysis.nodes.items():
+                print(f"  {name}: {float(node[0]):.4f} V")
 
         print("Simulación completada con PySpice")
     except Exception as exc:
